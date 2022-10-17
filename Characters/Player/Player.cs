@@ -36,6 +36,7 @@ public class Player : KinematicBody2D
     private AnimationNodeStateMachinePlayback   _AnimState;
     private PlayerState                         _PlayerState = PlayerState.PlayerState_Idle;
     private FacingDirection                     _FacingDirection = FacingDirection.FacingDirection_Down;
+    private RayCast2D                           _Ray;
 
     
 
@@ -81,20 +82,32 @@ public class Player : KinematicBody2D
 
     public void Move(float delta)
     {
-        //Update the percentage.
-        _percentMovedToNextTile += WalkSpeed * delta;
+        //Making sure the raycast is pointing to the direction the player is facing.
+        Vector2 desired_step = _inputDirection * TILE_SIZE * 0.5f;
+        _Ray.CastTo = desired_step;
+        _Ray.ForceRaycastUpdate();
 
-        //Move and reset the values when the percentage reachs its maximum.
-        if(_percentMovedToNextTile >= 1.0f)
+        if(!_Ray.IsColliding())
         {
-            Position = _initialPosition + (TILE_SIZE * _inputDirection);
-            _percentMovedToNextTile = 0.0f;
-            _PlayerState = PlayerState.PlayerState_Idle;
+            //Update the percentage.
+            _percentMovedToNextTile += WalkSpeed * delta;
+
+            //Move and reset the values when the percentage reachs its maximum.
+            if (_percentMovedToNextTile >= 1.0f)
+            {
+                Position = _initialPosition + (TILE_SIZE * _inputDirection);
+                _percentMovedToNextTile = 0.0f;
+                _PlayerState = PlayerState.PlayerState_Idle;
+            }
+            //If the percentage is not at its maximum, interpolate the position with the percentage.
+            else
+            {
+                Position = _initialPosition + (TILE_SIZE * _inputDirection * _percentMovedToNextTile);
+            }
         }
-        //If the percentage is not at its maximum, interpolate the position with the percentage.
         else
         {
-            Position = _initialPosition + (TILE_SIZE * _inputDirection * _percentMovedToNextTile);
+            _PlayerState = PlayerState.PlayerState_Idle;
         }
     }
 
@@ -146,6 +159,9 @@ public class Player : KinematicBody2D
         _AnimState = (AnimationNodeStateMachinePlayback)_AnimTree.Get("parameters/playback");
 
         _AnimTree.Active = true;
+
+        //Initialize the RayCast Object.
+        _Ray = GetNode<RayCast2D>("RayCast2D");
     }
 
     //Called Every Frame.

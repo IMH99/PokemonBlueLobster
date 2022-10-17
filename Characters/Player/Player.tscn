@@ -410,3 +410,11 @@ parameters/playback = SubResource( 24 )
 parameters/Idle/blend_position = Vector2( -0.895118, -0.42268 )
 parameters/Turn/blend_position = Vector2( 0, 0 )
 parameters/Walk/blend_position = Vector2( 0, 0 )
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2( 8, 8 )
+current = true
+
+[node name="RayCast2D" type="RayCast2D" parent="."]
+position = Vector2( 8, 8 )
+cast_to = Vector2( 0, 8 )
