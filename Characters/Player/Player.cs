@@ -112,12 +112,12 @@ public class Player : KinematicBody2D
                 if (_percentMovedToNextTile <= 0.8f)
                 {
                     if (!_isMoving) {
-                        EmitSignal("OnPlayerTileMoving");
+                        EmitSignal(nameof(OnPlayerTileMoving));
                     }
                     _isMoving = true;
                 } else {
                     if (_isMoving) {
-                        EmitSignal("OnPlayerTileMoved");
+                        EmitSignal(nameof(OnPlayerTileMoved));
                     }
                     _isMoving = false;
                 }

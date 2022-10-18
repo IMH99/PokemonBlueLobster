@@ -29,8 +29,8 @@ public class TallGrass : Node2D
 
             if (IsInstanceValid(player))
             {
-                player.Disconnect("OnPlayerTileMoved", this, "PlayerEnteredGrass");
-                player.Disconnect("OnPlayerTileMoving", this, "PlayerExitingGrass");
+                player.Disconnect("OnPlayerTileMoved", this, nameof(PlayerEnteredGrass));
+                player.Disconnect("OnPlayerTileMoving", this, nameof(PlayerExitingGrass));
             }
 
             //NOTE: we are not deleting the grass step effect because it deletes itself once the
@@ -64,8 +64,8 @@ public class TallGrass : Node2D
 
         if (IsInstanceValid(player))
         {
-            player.Connect("OnPlayerTileMoved", this, "PlayerEnteredGrass");
-            player.Connect("OnPlayerTileMoving", this, "PlayerExitingGrass");
+            player.Connect("OnPlayerTileMoved", this, nameof(PlayerEnteredGrass));
+            player.Connect("OnPlayerTileMoving", this, nameof(PlayerExitingGrass));
         }
 
         _animPlayer.Play("Step");
