@@ -72,3 +72,4 @@ anims/RESET = SubResource( 3 )
 anims/Step = SubResource( 4 )
 
 [connection signal="body_entered" from="Area2D" to="." method="OnArea2DBodyEntered"]
+[connection signal="body_exited" from="Area2D" to="." method="OnArea2DBodyExited"]
