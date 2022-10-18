@@ -21,6 +21,13 @@ public class Player : KinematicBody2D
         FacingDirection_Down
     }
 
+    //Delegates for Tall Grass.
+    [Signal]
+    public delegate void PlayerMoving();
+
+    [Signal]
+    public delegate void PlayerStopped();
+
     //Constant value for the tile size.
     const int                                   TILE_SIZE = 16;
 
@@ -89,6 +96,12 @@ public class Player : KinematicBody2D
 
         if(!_Ray.IsColliding())
         {
+            //Emit signal if the player is moving.
+            if(_percentMovedToNextTile == 0)
+            {
+                EmitSignal("PlayerMoving");
+            }
+
             //Update the percentage.
             _percentMovedToNextTile += WalkSpeed * delta;
 
@@ -98,6 +111,9 @@ public class Player : KinematicBody2D
                 Position = _initialPosition + (TILE_SIZE * _inputDirection);
                 _percentMovedToNextTile = 0.0f;
                 _PlayerState = PlayerState.PlayerState_Idle;
+
+                //Emit signal when the player stops.
+                EmitSignal("PlayerStopped");
             }
             //If the percentage is not at its maximum, interpolate the position with the percentage.
             else
