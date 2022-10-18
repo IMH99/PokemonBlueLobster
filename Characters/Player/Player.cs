@@ -21,6 +21,11 @@ public class Player : KinematicBody2D
         FacingDirection_Down
     }
 
+    [Signal]
+    public delegate void                        OnPlayerTileMoved();
+    [Signal]
+    public delegate void                        OnPlayerTileMoving();
+
     //Constant value for the tile size.
     const int                                   TILE_SIZE = 16;
 
@@ -32,6 +37,7 @@ public class Player : KinematicBody2D
     private Vector2                             _initialPosition;
     private Vector2                             _inputDirection;
     private float                               _percentMovedToNextTile = 0.0f; //From 0 to 1.
+    private bool                                _isMoving = false;
     private AnimationTree                       _AnimTree;
     private AnimationNodeStateMachinePlayback   _AnimState;
     private PlayerState                         _PlayerState = PlayerState.PlayerState_Idle;
@@ -102,6 +108,20 @@ public class Player : KinematicBody2D
             //If the percentage is not at its maximum, interpolate the position with the percentage.
             else
             {
+                // When getting close to the tile, send signal.
+                if (_percentMovedToNextTile <= 0.8f)
+                {
+                    if (!_isMoving) {
+                        EmitSignal("OnPlayerTileMoving");
+                    }
+                    _isMoving = true;
+                } else {
+                    if (_isMoving) {
+                        EmitSignal("OnPlayerTileMoved");
+                    }
+                    _isMoving = false;
+                }
+
                 Position = _initialPosition + (TILE_SIZE * _inputDirection * _percentMovedToNextTile);
             }
         }

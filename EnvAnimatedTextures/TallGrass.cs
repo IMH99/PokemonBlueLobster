@@ -8,7 +8,7 @@ public class TallGrass : Node2D
     private TextureRect             _grassOverlay;
 
     //Pre load the texture and effect we are going to use.
-    private Texture                 _grassOverlayTexture = ResourceLoader.Load<Texture>("res://Assets/Tiles/stepped_tall_grass.png");;
+    private Texture                 _grassOverlayTexture = ResourceLoader.Load<Texture>("res://Assets/Tiles/stepped_tall_grass.png");
     public PackedScene              _grassStepEffect = ResourceLoader.Load<PackedScene>("res://EnvAnimatedTextures/GrassStepEffect.tscn");
 
     // Called when the node enters the scene tree for the first time.
@@ -20,10 +20,18 @@ public class TallGrass : Node2D
     public void PlayerExitingGrass()
     {
         //Make sure there is an overlay created.
-        if(IsInstanceValid(_grassOverlay))
+        if (IsInstanceValid(_grassOverlay))
         {
             //Delete the overlay.
             _grassOverlay.QueueFree();
+
+            Player player = (Player)GetTree().CurrentScene.FindNode("Player");
+
+            if (IsInstanceValid(player))
+            {
+                player.Disconnect("OnPlayerTileMoved", this, "PlayerEnteredGrass");
+                player.Disconnect("OnPlayerTileMoving", this, "PlayerExitingGrass");
+            }
 
             //NOTE: we are not deleting the grass step effect because it deletes itself once the
             //animation is completed, check GrassEffect.cs
@@ -52,12 +60,14 @@ public class TallGrass : Node2D
 
     public void OnArea2DBodyEntered(Area2D other)
     {
-        PlayerEnteredGrass();
-        _animPlayer.Play("Step");
-    }
+        Player player = (Player)GetTree().CurrentScene.FindNode("Player");
 
-    public void OnArea2DBodyExited(Area2D other)
-    {
-        PlayerExitingGrass();
+        if (IsInstanceValid(player))
+        {
+            player.Connect("OnPlayerTileMoved", this, "PlayerEnteredGrass");
+            player.Connect("OnPlayerTileMoving", this, "PlayerExitingGrass");
+        }
+
+        _animPlayer.Play("Step");
     }
 }
