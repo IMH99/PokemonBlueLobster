@@ -46,8 +46,10 @@ public class Player : KinematicBody2D
     private RayCast2D                           _blockingRay;
     private RayCast2D                           _jumpingRay;
     private bool                                _isJumping = false;
+    private Sprite                              _shadowSprite;
+    public PackedScene                          _landingDustEffect = ResourceLoader.Load<PackedScene>("res://EnvAnimatedTextures/LandingDustEffect.tscn");
 
-    
+
 
     //Member Functions.
     public void ProcessPlayerInput()
@@ -113,9 +115,16 @@ public class Player : KinematicBody2D
                 _percentMovedToNextTile = 0.0f;
                 _playerState = PlayerState.PlayerState_Idle;
                 _isJumping = false;
+                _shadowSprite.Visible = false;
+
+                //Create the animation jumping dust animation instance and add it to the scene.
+                AnimatedSprite anim_sprite = _landingDustEffect.Instance() as AnimatedSprite;
+                anim_sprite.Position = Position;
+                GetTree().CurrentScene.AddChild(anim_sprite);
             }
             else
             {
+                _shadowSprite.Visible = true;
                 _isJumping = true;
                 float input = _inputDirection.y * TILE_SIZE * _percentMovedToNextTile;
                 Position = new Vector2(Position.x, _initialPosition.y + (-0.96f - 0.53f * input + 0.05f * (input * input)));
@@ -212,6 +221,10 @@ public class Player : KinematicBody2D
         //Initialize the RayCast Objects.
         _blockingRay = GetNode<RayCast2D>("BlockingRayCast2D");
         _jumpingRay = GetNode<RayCast2D>("JumpingRayCast2D");
+
+        //Initialize the shadow sprite for ledge jumping.
+        _shadowSprite = GetNode<Sprite>("Shadow");
+        _shadowSprite.Visible = false;
     }
 
     //Called Every Frame.
