@@ -43,8 +43,8 @@ public class Player : KinematicBody2D
     public float                                 JumpSpeed = 4.0f;
 
     //Member Variables.
-    private Vector2                             _initialPosition;
-    private Vector2                             _inputDirection;
+    private Vector2                             _initialPosition = new Vector2(0, 0);
+    private Vector2                             _inputDirection = new Vector2(0, 1);
     private float                               _percentMovedToNextTile = 0.0f; //From 0 to 1.
     private bool                                _isMoving = false;
     private bool                                _stopInput = false;
@@ -99,6 +99,16 @@ public class Player : KinematicBody2D
             _playerState = PlayerState.PlayerState_Idle;
             _animState.Travel("Idle");
         }
+    }
+
+    public void SetSpawn(Vector2 spawn_location, Vector2 spawn_direction)
+    {
+        //Update the Blend position with the input direction.
+        _animTree.Set("parameters/Idle/blend_position", spawn_direction);
+        _animTree.Set("parameters/Walk/blend_position", spawn_direction);
+        _animTree.Set("parameters/Turn/blend_position", spawn_direction);
+
+        Position = spawn_location;
     }
 
     public void Move(float delta)
@@ -271,6 +281,11 @@ public class Player : KinematicBody2D
 
         //Make sure the player sprite always starts visible
         GetNode<Sprite>("Sprite").Visible = true;
+
+        //Update the Blend position with the input direction.
+        _animTree.Set("parameters/Idle/blend_position", _inputDirection);
+        _animTree.Set("parameters/Walk/blend_position", _inputDirection);
+        _animTree.Set("parameters/Turn/blend_position", _inputDirection);
     }
 
     //Called Every Frame.
