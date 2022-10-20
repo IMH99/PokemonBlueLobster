@@ -1,0 +1,83 @@
+[gd_scene load_steps=10 format=2]
+
+[ext_resource path="res://Assets/Tiles/rival_home.png" type="Texture" id=1]
+[ext_resource path="res://Characters/Player/Player.tscn" type="PackedScene" id=2]
+[ext_resource path="res://Scenes/BlockableObjects/Door.tscn" type="PackedScene" id=3]
+[ext_resource path="res://Assets/Tiles/mat.png" type="Texture" id=4]
+
+[sub_resource type="RectangleShape2D" id=1]
+extents = Vector2( 15.5, 96 )
+
+[sub_resource type="RectangleShape2D" id=2]
+extents = Vector2( 104, 8 )
+
+[sub_resource type="RectangleShape2D" id=4]
+extents = Vector2( 32, 8 )
+
+[sub_resource type="RectangleShape2D" id=5]
+extents = Vector2( 64, 8 )
+
+[sub_resource type="RectangleShape2D" id=6]
+extents = Vector2( 16, 16 )
+
+[node name="RivalHomeFloor" type="Node2D"]
+
+[node name="ColorRect" type="ColorRect" parent="."]
+margin_left = -128.0
+margin_top = -224.0
+margin_right = 472.0
+margin_bottom = 376.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="TextureRect" type="TextureRect" parent="."]
+margin_right = 192.0
+margin_bottom = 144.0
+texture = ExtResource( 1 )
+
+[node name="Mat" type="TextureRect" parent="."]
+margin_left = 56.0
+margin_top = 128.0
+margin_right = 88.0
+margin_bottom = 144.0
+texture = ExtResource( 4 )
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+collision_layer = 2
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2( -15.5, 96 )
+shape = SubResource( 1 )
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2( 223, 96 )
+shape = SubResource( 1 )
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2( 104, 24 )
+shape = SubResource( 2 )
+
+[node name="CollisionShape2D5" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2( 32, 152 )
+shape = SubResource( 4 )
+
+[node name="CollisionShape2D6" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2( 144, 152 )
+shape = SubResource( 5 )
+
+[node name="CollisionShape2D7" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2( 112, 80 )
+shape = SubResource( 6 )
+
+[node name="YSort" type="YSort" parent="."]
+
+[node name="Player" parent="YSort" instance=ExtResource( 2 )]
+position = Vector2( 176, 80 )
+
+[node name="Door" parent="." instance=ExtResource( 3 )]
+modulate = Color( 0.164706, 0.235294, 0.690196, 1 )
+position = Vector2( 64, 144 )
+NextScenePath = "res://Scenes/Map/Town.tscn"
+IsInvisible = true
+SpawnLocation = Vector2( 368, 64 )
+SpawnDirection = Vector2( 0, 1 )

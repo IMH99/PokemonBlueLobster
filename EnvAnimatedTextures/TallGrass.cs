@@ -25,7 +25,7 @@ public class TallGrass : Node2D
             //Delete the overlay.
             _grassOverlay.QueueFree();
 
-            Player player = (Player)GetTree().CurrentScene.FindNode("Player");
+            Player player = (Player)FindParent("CurrentScene").GetChild(FindParent("CurrentScene").GetChildCount() - 1).FindNode("Player");
 
             if (IsInstanceValid(player))
             {

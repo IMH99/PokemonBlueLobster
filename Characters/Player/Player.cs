@@ -21,10 +21,17 @@ public class Player : KinematicBody2D
         FacingDirection_Down
     }
 
+    //Events for tall grass animation.
     [Signal]
     public delegate void                        OnPlayerTileMoved();
     [Signal]
     public delegate void                        OnPlayerTileMoving();
+
+    //Events for door animation.
+    [Signal]
+    public delegate void OnPlayerEnteringDoor();
+    [Signal]
+    public delegate void OnPlayerEnteredDoor();
 
     //Constant value for the tile size.
     const int                                   TILE_SIZE = 16;
@@ -32,19 +39,22 @@ public class Player : KinematicBody2D
     //Editor Variables.
     [Export]
     public float                                 WalkSpeed = 4.0f;
+    [Export]
     public float                                 JumpSpeed = 4.0f;
 
     //Member Variables.
-    private Vector2                             _initialPosition;
-    private Vector2                             _inputDirection;
+    private Vector2                             _initialPosition = new Vector2(0, 0);
+    private Vector2                             _inputDirection = new Vector2(0, 1);
     private float                               _percentMovedToNextTile = 0.0f; //From 0 to 1.
     private bool                                _isMoving = false;
+    private bool                                _stopInput = false;
     private AnimationTree                       _animTree;
     private AnimationNodeStateMachinePlayback   _animState;
     private PlayerState                         _playerState = PlayerState.PlayerState_Idle;
     private FacingDirection                     _facingDirection = FacingDirection.FacingDirection_Down;
     private RayCast2D                           _blockingRay;
     private RayCast2D                           _jumpingRay;
+    private RayCast2D                           _doorRay;
     private bool                                _isJumping = false;
     private Sprite                              _shadowSprite;
     public PackedScene                          _landingDustEffect = ResourceLoader.Load<PackedScene>("res://EnvAnimatedTextures/LandingDustEffect.tscn");
@@ -91,6 +101,16 @@ public class Player : KinematicBody2D
         }
     }
 
+    public void SetSpawn(Vector2 spawn_location, Vector2 spawn_direction)
+    {
+        //Update the Blend position with the input direction.
+        _animTree.Set("parameters/Idle/blend_position", spawn_direction);
+        _animTree.Set("parameters/Walk/blend_position", spawn_direction);
+        _animTree.Set("parameters/Turn/blend_position", spawn_direction);
+
+        Position = spawn_location;
+    }
+
     public void Move(float delta)
     {
         //Making sure the raycast is pointing to the direction the player is facing.
@@ -102,10 +122,37 @@ public class Player : KinematicBody2D
         _jumpingRay.CastTo = desired_step;
         _jumpingRay.ForceRaycastUpdate();
 
+        _doorRay.CastTo = desired_step;
+        _doorRay.ForceRaycastUpdate();
+
         Vector2 vec = new Vector2(0, 1);
 
+        //Check if the player is about to enter a door.
+        if (_doorRay.IsColliding())
+        {
+            if (_percentMovedToNextTile == 0.0f)
+            {
+                EmitSignal(nameof(OnPlayerEnteringDoor));
+            }
+            if (_percentMovedToNextTile >= 1.0f)
+            {
+                Position = _initialPosition + (_inputDirection * TILE_SIZE);
+                _percentMovedToNextTile = 0.0f;
+                _playerState = PlayerState.PlayerState_Idle;
+                _stopInput = true;
+
+                GetNode<AnimationPlayer>("AnimationPlayer").Play("Disappear");
+                GetNode<Camera2D>("Camera2D").ClearCurrent();
+            }
+            else
+            {
+                Position = _initialPosition + (TILE_SIZE * _inputDirection * _percentMovedToNextTile);
+            }
+
+            _percentMovedToNextTile += WalkSpeed * delta;
+        }
         //Check if the player is about to jump.
-        if ((_blockingRay.IsColliding() && _inputDirection == vec) || _isJumping)
+        else if ((_jumpingRay.IsColliding() && _inputDirection == vec) || _isJumping)
         {
             _percentMovedToNextTile += JumpSpeed * delta;
 
@@ -206,6 +253,11 @@ public class Player : KinematicBody2D
         _playerState = PlayerState.PlayerState_Idle;
     }
 
+    public void EnteredDoor()
+    {
+        EmitSignal(nameof(OnPlayerEnteredDoor));
+    }
+
     //Start Function.
     public override void _Ready()
     {
@@ -221,16 +273,25 @@ public class Player : KinematicBody2D
         //Initialize the RayCast Objects.
         _blockingRay = GetNode<RayCast2D>("BlockingRayCast2D");
         _jumpingRay = GetNode<RayCast2D>("JumpingRayCast2D");
+        _doorRay = GetNode<RayCast2D>("DoorRayCast2D");
 
         //Initialize the shadow sprite for ledge jumping.
         _shadowSprite = GetNode<Sprite>("Shadow");
         _shadowSprite.Visible = false;
+
+        //Make sure the player sprite always starts visible
+        GetNode<Sprite>("Sprite").Visible = true;
+
+        //Update the Blend position with the input direction.
+        _animTree.Set("parameters/Idle/blend_position", _inputDirection);
+        _animTree.Set("parameters/Walk/blend_position", _inputDirection);
+        _animTree.Set("parameters/Turn/blend_position", _inputDirection);
     }
 
     //Called Every Frame.
     public override void _PhysicsProcess(float delta)
     {
-        if(_playerState == PlayerState.PlayerState_Turning)
+        if(_playerState == PlayerState.PlayerState_Turning || _stopInput)
         {
             return;
         }
