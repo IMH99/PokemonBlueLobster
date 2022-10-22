@@ -6,19 +6,19 @@ public class Player : KinematicBody2D
     //Enums.
     enum PlayerState
     {
-        PlayerState_None = -1,
-        PlayerState_Idle,
-        PlayerState_Turning,
-        PlayerState_Walking
+        kPlayerState_None = -1,
+        kPlayerState_Idle,
+        kPlayerState_Turning,
+        kPlayerState_Walking
     }
 
     enum FacingDirection
     {
-        FacingDirection_None = -1,
-        FacingDirection_Left,
-        FacingDirection_Right,
-        FacingDirection_Up,
-        FacingDirection_Down
+        kFacingDirection_None = -1,
+        kFacingDirection_Left,
+        kFacingDirection_Right,
+        kFacingDirection_Up,
+        kFacingDirection_Down
     }
 
     //Events for tall grass animation.
@@ -50,18 +50,23 @@ public class Player : KinematicBody2D
     private bool                                _stopInput = false;
     private AnimationTree                       _animTree;
     private AnimationNodeStateMachinePlayback   _animState;
-    private PlayerState                         _playerState = PlayerState.PlayerState_Idle;
-    private FacingDirection                     _facingDirection = FacingDirection.FacingDirection_Down;
+    private PlayerState                         _playerState = PlayerState.kPlayerState_Idle;
+    private FacingDirection                     _facingDirection = FacingDirection.kFacingDirection_Down;
     private RayCast2D                           _blockingRay;
     private RayCast2D                           _jumpingRay;
     private RayCast2D                           _doorRay;
     private bool                                _isJumping = false;
     private Sprite                              _shadowSprite;
-    public PackedScene                          _landingDustEffect = ResourceLoader.Load<PackedScene>("res://EnvAnimatedTextures/LandingDustEffect.tscn");
+    private PackedScene                         _landingDustEffect = ResourceLoader.Load<PackedScene>("res://EnvAnimatedTextures/LandingDustEffect.tscn");
 
 
 
     //Member Functions.
+    public bool IsMoving()
+    {
+        return _playerState != PlayerState.kPlayerState_Idle;
+    }
+
     public void ProcessPlayerInput()
     {
         //Doing this to not move diagonally.
@@ -85,18 +90,18 @@ public class Player : KinematicBody2D
             //Update the player state based on the action performed.
             if(NeedToTurn())
             {
-                _playerState = PlayerState.PlayerState_Turning;
+                _playerState = PlayerState.kPlayerState_Turning;
                 _animState.Travel("Turn");
             }
             else
             {
-                _playerState = PlayerState.PlayerState_Walking;
+                _playerState = PlayerState.kPlayerState_Walking;
                 _initialPosition = Position;
             }
         }
         else
         {
-            _playerState = PlayerState.PlayerState_Idle;
+            _playerState = PlayerState.kPlayerState_Idle;
             _animState.Travel("Idle");
         }
     }
@@ -138,7 +143,7 @@ public class Player : KinematicBody2D
             {
                 Position = _initialPosition + (_inputDirection * TILE_SIZE);
                 _percentMovedToNextTile = 0.0f;
-                _playerState = PlayerState.PlayerState_Idle;
+                _playerState = PlayerState.kPlayerState_Idle;
                 _stopInput = true;
 
                 GetNode<AnimationPlayer>("AnimationPlayer").Play("Disappear");
@@ -160,7 +165,7 @@ public class Player : KinematicBody2D
             {
                 Position = _initialPosition + (_inputDirection * TILE_SIZE * 2);
                 _percentMovedToNextTile = 0.0f;
-                _playerState = PlayerState.PlayerState_Idle;
+                _playerState = PlayerState.kPlayerState_Idle;
                 _isJumping = false;
                 _shadowSprite.Visible = false;
 
@@ -188,7 +193,7 @@ public class Player : KinematicBody2D
             {
                 Position = _initialPosition + (TILE_SIZE * _inputDirection);
                 _percentMovedToNextTile = 0.0f;
-                _playerState = PlayerState.PlayerState_Idle;
+                _playerState = PlayerState.kPlayerState_Idle;
             }
             //If the percentage is not at its maximum, interpolate the position with the percentage.
             else
@@ -212,29 +217,29 @@ public class Player : KinematicBody2D
         }
         else
         {
-            _playerState = PlayerState.PlayerState_Idle;
+            _playerState = PlayerState.kPlayerState_Idle;
         }
     }
 
     public bool NeedToTurn()
     {
-        FacingDirection new_facing_direction = FacingDirection.FacingDirection_None;
+        FacingDirection new_facing_direction = FacingDirection.kFacingDirection_None;
 
         if(_inputDirection.x < 0)
         {
-            new_facing_direction = FacingDirection.FacingDirection_Left;
+            new_facing_direction = FacingDirection.kFacingDirection_Left;
         }
         else if (_inputDirection.x > 0)
         {
-            new_facing_direction = FacingDirection.FacingDirection_Right;
+            new_facing_direction = FacingDirection.kFacingDirection_Right;
         }
         else if (_inputDirection.y < 0)
         {
-            new_facing_direction = FacingDirection.FacingDirection_Up;
+            new_facing_direction = FacingDirection.kFacingDirection_Up;
         }
         else if (_inputDirection.y > 0)
         {
-            new_facing_direction = FacingDirection.FacingDirection_Down;
+            new_facing_direction = FacingDirection.kFacingDirection_Down;
         }
 
         if(_facingDirection != new_facing_direction)
@@ -250,7 +255,7 @@ public class Player : KinematicBody2D
     public void FinishedTurning()
     {
         //When finished turning the player stays in idle.
-        _playerState = PlayerState.PlayerState_Idle;
+        _playerState = PlayerState.kPlayerState_Idle;
     }
 
     public void EnteredDoor()
@@ -291,24 +296,24 @@ public class Player : KinematicBody2D
     //Called Every Frame.
     public override void _PhysicsProcess(float delta)
     {
-        if(_playerState == PlayerState.PlayerState_Turning || _stopInput)
+        if(_playerState == PlayerState.kPlayerState_Turning || _stopInput)
         {
             return;
         }
-        else if(_playerState != PlayerState.PlayerState_Walking)
+        else if(_playerState != PlayerState.kPlayerState_Walking)
         {
             ProcessPlayerInput();
         }
         //If the direction is not zero means the player has to move and perform animation.
         else if(_inputDirection != Vector2.Zero)
         {
-            _playerState = PlayerState.PlayerState_Walking;
+            _playerState = PlayerState.kPlayerState_Walking;
             _animState.Travel("Walk");
             Move(delta);
         }
         else
         {
-            _playerState = PlayerState.PlayerState_Idle;
+            _playerState = PlayerState.kPlayerState_Idle;
             _animState.Travel("Idle");
         }
     }

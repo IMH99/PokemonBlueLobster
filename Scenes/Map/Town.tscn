@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=12 format=2]
 
 [ext_resource path="res://Characters/Player/Player.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Scenes/Map/OverworldTileMap.tscn" type="PackedScene" id=2]
@@ -9,6 +9,7 @@
 [ext_resource path="res://Scenes/BlockableObjects/Door.tscn" type="PackedScene" id=7]
 [ext_resource path="res://Assets/Tiles/oaks_lab.png" type="Texture" id=8]
 [ext_resource path="res://Scenes/BlockableObjects/House.tscn" type="PackedScene" id=9]
+[ext_resource path="res://Assets/Tiles/Door Animations/oaks_lab.png" type="Texture" id=10]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 56, 32 )
@@ -298,4 +299,8 @@ NextScenePath = "res://Scenes/Map/OaksLab.tscn"
 SpawnLocation = Vector2( 64, 192 )
 SpawnDirection = Vector2( 0, -1 )
 
+[node name="Sprite" parent="YSort/OaksLab/Door" index="0"]
+texture = ExtResource( 10 )
+
 [editable path="YSort/OaksLab"]
+[editable path="YSort/OaksLab/Door"]

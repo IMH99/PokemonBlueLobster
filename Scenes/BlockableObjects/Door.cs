@@ -28,9 +28,9 @@ public class Door : Area2D
         }
         GetNode<Sprite>("Sprite").Visible = false;
 
-        Player player = (Player)FindParent("CurrentScene").GetChild(FindParent("CurrentScene").GetChildCount() - 1).FindNode("Player");
+        Player player = Utils.Instance().GetPlayerNode();
 
-        if(IsInstanceValid(player))
+        if (IsInstanceValid(player))
         {
             player.Connect("OnPlayerEnteringDoor", this, "EnterDoor");
             player.Connect("OnPlayerEnteredDoor", this, "CloseDoor");
@@ -57,12 +57,7 @@ public class Door : Area2D
     {
         if (_playerEntered)
         {
-            SceneManager scene_manager = (SceneManager)GetNode(new NodePath("/root/SceneManager"));
-
-            if (IsInstanceValid(scene_manager))
-            {
-                scene_manager.TransitionToScene(NextScenePath, SpawnLocation, SpawnDirection);
-            }
+            Utils.Instance().GetSceneManager().TransitionToScene(NextScenePath, SpawnLocation, SpawnDirection);
         }
     }
 
