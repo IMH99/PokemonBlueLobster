@@ -322,4 +322,9 @@ public class Player : KinematicBody2D
             _animState.Travel("Idle");
         }
     }
+
+    public bool IsJumping()
+    {
+        return _isJumping;
+    }
 }

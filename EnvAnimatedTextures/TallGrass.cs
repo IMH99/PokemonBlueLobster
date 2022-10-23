@@ -63,7 +63,12 @@ public class TallGrass : Node2D
         Player player = Utils.Instance().GetPlayerNode();
 
         if (IsInstanceValid(player))
-        {
+        {    
+            // Safety check in case the player is trying to jump with tall grass nearby
+            if (player.IsJumping()) {
+                return;
+            }
+
             player.Connect("OnPlayerTileMoved", this, nameof(PlayerEnteredGrass));
             player.Connect("OnPlayerTileMoving", this, nameof(PlayerExitingGrass));
         }
