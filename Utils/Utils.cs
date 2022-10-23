@@ -7,7 +7,7 @@ public class Utils : Node
     private static Utils            _instance;
     private Node                    _sceneManagerNode;
     private Player                  _playerRef;
-    private SceneManager            _sceneManagerRef;
+    private SceneManager            _sceneManagerRef; 
 
     //Member functions.
     public static Utils Instance()
@@ -18,6 +18,11 @@ public class Utils : Node
     public Player GetPlayerNode()
     {
         return _playerRef;
+    }
+
+    public void SetPlayerNode(Player p)
+    {
+        _playerRef = p;
     }
 
     public SceneManager GetSceneManager()

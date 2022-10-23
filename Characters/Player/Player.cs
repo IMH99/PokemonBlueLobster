@@ -291,6 +291,11 @@ public class Player : KinematicBody2D
         _animTree.Set("parameters/Idle/blend_position", _inputDirection);
         _animTree.Set("parameters/Walk/blend_position", _inputDirection);
         _animTree.Set("parameters/Turn/blend_position", _inputDirection);
+
+        //Setting the player instance on the utils because the player changes when changing the scene.
+        //NOTE: this has to be reorganized, maybe only having a ref on the utils class and instancing that
+        //reference every time we change scenes.
+        Utils.Instance().SetPlayerNode(this);
     }
 
     //Called Every Frame.
