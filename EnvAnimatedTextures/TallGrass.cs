@@ -60,7 +60,7 @@ public class TallGrass : Node2D
 
     public void OnArea2DBodyEntered(Area2D other)
     {
-        Player player = (Player)GetTree().CurrentScene.FindNode("Player");
+        Player player = Utils.Instance().GetPlayerNode();
 
         if (IsInstanceValid(player))
         {
