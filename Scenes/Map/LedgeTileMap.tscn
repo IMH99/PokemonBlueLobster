@@ -1,6 +1,7 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://Assets/Tiles/ledge.png" type="Texture" id=1]
+[ext_resource path="res://Scenes/Map/LedgeTileMap.cs" type="Script" id=2]
 
 [sub_resource type="ConvexPolygonShape2D" id=10]
 points = PoolVector2Array( 0, 0, 16, 0, 16, 16, 0, 16 )
@@ -62,3 +63,5 @@ collision_layer = 4
 collision_mask = 0
 format = 1
 tile_data = PoolIntArray( 327682, 0, 0, 327683, 0, 1, 327684, 0, 1, 327685, 0, 1, 327686, 0, 1, 327687, 0, 1, 327688, 0, 1, 327689, 0, 1, 327690, 0, 1, 327691, 0, 1, 327692, 0, 2 )
+script = ExtResource( 2 )
+Direction = 3

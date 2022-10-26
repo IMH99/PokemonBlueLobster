@@ -12,15 +12,6 @@ public class Player : KinematicBody2D
         kPlayerState_Walking
     }
 
-    enum FacingDirection
-    {
-        kFacingDirection_None = -1,
-        kFacingDirection_Left,
-        kFacingDirection_Right,
-        kFacingDirection_Up,
-        kFacingDirection_Down
-    }
-
     //Events for tall grass animation.
     [Signal]
     public delegate void                        OnPlayerTileMoved();
@@ -51,14 +42,14 @@ public class Player : KinematicBody2D
     private AnimationTree                       _animTree;
     private AnimationNodeStateMachinePlayback   _animState;
     private PlayerState                         _playerState = PlayerState.kPlayerState_Idle;
-    private FacingDirection                     _facingDirection = FacingDirection.kFacingDirection_Down;
+    private Enums.FacingDirection               _facingDirection = Enums.FacingDirection.kFacingDirection_Down;
     private RayCast2D                           _blockingRay;
     private RayCast2D                           _jumpingRay;
     private RayCast2D                           _doorRay;
     private bool                                _isJumping = false;
     private Sprite                              _shadowSprite;
     private PackedScene                         _landingDustEffect = ResourceLoader.Load<PackedScene>("res://EnvAnimatedTextures/LandingDustEffect.tscn");
-
+    private bool                                _isColliding = false;
 
 
     //Member Functions.
@@ -98,6 +89,19 @@ public class Player : KinematicBody2D
                 _playerState = PlayerState.kPlayerState_Walking;
                 _initialPosition = Position;
             }
+
+            //Making sure the raycast is pointing to the direction the player is facing.
+
+            Vector2 desired_step = _inputDirection * TILE_SIZE * 0.5f;
+
+            _blockingRay.CastTo = desired_step;
+            _blockingRay.ForceRaycastUpdate();
+
+            _jumpingRay.CastTo = desired_step;
+            _jumpingRay.ForceRaycastUpdate();
+
+            _doorRay.CastTo = desired_step;
+            _doorRay.ForceRaycastUpdate();
         }
         else
         {
@@ -118,18 +122,6 @@ public class Player : KinematicBody2D
 
     public void Move(float delta)
     {
-        //Making sure the raycast is pointing to the direction the player is facing.
-        Vector2 desired_step = _inputDirection * TILE_SIZE * 0.5f;
-
-        _blockingRay.CastTo = desired_step;
-        _blockingRay.ForceRaycastUpdate();
-
-        _jumpingRay.CastTo = desired_step;
-        _jumpingRay.ForceRaycastUpdate();
-
-        _doorRay.CastTo = desired_step;
-        _doorRay.ForceRaycastUpdate();
-
         Vector2 vec = new Vector2(0, 1);
 
         //Check if the player is about to enter a door.
@@ -157,8 +149,34 @@ public class Player : KinematicBody2D
             _percentMovedToNextTile += WalkSpeed * delta;
         }
         //Check if the player is about to jump.
-        else if ((_jumpingRay.IsColliding() && _inputDirection == vec) || _isJumping)
+        else if ((_jumpingRay.IsColliding()) || _isJumping )
         {
+            if (_percentMovedToNextTile == 0.0f) 
+            {
+                TileMap collider = (TileMap)_jumpingRay.GetCollider();
+                if (IsInstanceValid(collider))
+                {
+                    LedgeTileMap ledge = collider as LedgeTileMap;
+                    if (ledge.Direction == _facingDirection) 
+                    {
+                        Vector2 _tmpJumpingRayPosition = _jumpingRay.Position;
+                        _jumpingRay.Position = new Vector2(_tmpJumpingRayPosition.x + (_inputDirection.x * TILE_SIZE * 2.0f), _tmpJumpingRayPosition.y + (_inputDirection.y * TILE_SIZE *2.0f));
+                        _jumpingRay.ForceRaycastUpdate();
+                        if (_jumpingRay.IsColliding()) {
+                            _jumpingRay.Position = _tmpJumpingRayPosition;
+                            _playerState = PlayerState.kPlayerState_Idle;
+                            _jumpingRay.ForceRaycastUpdate();
+                            return;
+                        }
+                        _isJumping = true;
+                        _jumpingRay.Position = _tmpJumpingRayPosition;
+                        _jumpingRay.ForceRaycastUpdate();
+                    } else {
+                        _playerState = PlayerState.kPlayerState_Idle;
+                        return;
+                    }
+                }
+            }
             _percentMovedToNextTile += JumpSpeed * delta;
 
             if(_percentMovedToNextTile >= 2.0f)
@@ -223,23 +241,23 @@ public class Player : KinematicBody2D
 
     public bool NeedToTurn()
     {
-        FacingDirection new_facing_direction = FacingDirection.kFacingDirection_None;
+        Enums.FacingDirection new_facing_direction = Enums.FacingDirection.kFacingDirection_None;
 
         if(_inputDirection.x < 0)
         {
-            new_facing_direction = FacingDirection.kFacingDirection_Left;
+            new_facing_direction = Enums.FacingDirection.kFacingDirection_Left;
         }
         else if (_inputDirection.x > 0)
         {
-            new_facing_direction = FacingDirection.kFacingDirection_Right;
+            new_facing_direction = Enums.FacingDirection.kFacingDirection_Right;
         }
         else if (_inputDirection.y < 0)
         {
-            new_facing_direction = FacingDirection.kFacingDirection_Up;
+            new_facing_direction = Enums.FacingDirection.kFacingDirection_Up;
         }
         else if (_inputDirection.y > 0)
         {
-            new_facing_direction = FacingDirection.kFacingDirection_Down;
+            new_facing_direction = Enums.FacingDirection.kFacingDirection_Down;
         }
 
         if(_facingDirection != new_facing_direction)
