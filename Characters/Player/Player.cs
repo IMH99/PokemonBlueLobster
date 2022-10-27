@@ -58,7 +58,53 @@ public class Player : KinematicBody2D
         return _playerState != PlayerState.kPlayerState_Idle;
     }
 
-    public void ProcessPlayerInput()
+    public bool IsJumping()
+    {
+        return _isJumping;
+    }
+
+    public bool NeedToTurn()
+    {
+        Enums.FacingDirection new_facing_direction = Enums.FacingDirection.kFacingDirection_None;
+
+        if (_inputDirection.x < 0)
+        {
+            new_facing_direction = Enums.FacingDirection.kFacingDirection_Left;
+        }
+        else if (_inputDirection.x > 0)
+        {
+            new_facing_direction = Enums.FacingDirection.kFacingDirection_Right;
+        }
+        else if (_inputDirection.y < 0)
+        {
+            new_facing_direction = Enums.FacingDirection.kFacingDirection_Up;
+        }
+        else if (_inputDirection.y > 0)
+        {
+            new_facing_direction = Enums.FacingDirection.kFacingDirection_Down;
+        }
+
+        if (_facingDirection != new_facing_direction)
+        {
+            _facingDirection = new_facing_direction;
+            return true;
+        }
+
+        _facingDirection = new_facing_direction;
+        return false;
+    }
+
+    public void SetSpawn(Vector2 spawn_location, Vector2 spawn_direction)
+    {
+        //Update the Blend position with the input direction.
+        _animTree.Set("parameters/Idle/blend_position", spawn_direction);
+        _animTree.Set("parameters/Walk/blend_position", spawn_direction);
+        _animTree.Set("parameters/Turn/blend_position", spawn_direction);
+
+        Position = spawn_location;
+    }
+
+    private void ProcessPlayerInput()
     {
         //Doing this to not move diagonally.
         if(_inputDirection.y == 0)
@@ -110,128 +156,170 @@ public class Player : KinematicBody2D
         }
     }
 
-    public void SetSpawn(Vector2 spawn_location, Vector2 spawn_direction)
+    public void HandleEntertingDoor(float delta)
     {
-        //Update the Blend position with the input direction.
-        _animTree.Set("parameters/Idle/blend_position", spawn_direction);
-        _animTree.Set("parameters/Walk/blend_position", spawn_direction);
-        _animTree.Set("parameters/Turn/blend_position", spawn_direction);
+        //On the first frame we send the signal to the door object which will activate the door animation.
+        if (_percentMovedToNextTile == 0.0f)
+        {
+            EmitSignal(nameof(OnPlayerEnteringDoor));
+        }
+        else if (_percentMovedToNextTile >= 1.0f)
+        {
+            //When we moved one tile we finished the movement so we reset the values.
+            Position = _initialPosition + (_inputDirection * TILE_SIZE);
+            _percentMovedToNextTile = 0.0f;
+            _playerState = PlayerState.kPlayerState_Idle;
+            _stopInput = true;
 
-        Position = spawn_location;
+            //Call the animation for disappear and clear the camera.
+            GetNode<AnimationPlayer>("AnimationPlayer").Play("Disappear");
+            GetNode<Camera2D>("Camera2D").ClearCurrent();
+        }
+        else
+        {
+            //Between 0 and 1 percent the player will move.
+            Position = _initialPosition + (TILE_SIZE * _inputDirection * _percentMovedToNextTile);
+        }
+
+        _percentMovedToNextTile += WalkSpeed * delta;
     }
 
-    public void Move(float delta)
+    public void HandleJumping(float delta)
     {
-        Vector2 vec = new Vector2(0, 1);
+        if (_percentMovedToNextTile == 0.0f)
+        {
+            //On the first frame we get the tilemap to access the direction of the ledges.
+            TileMap collider = (TileMap)_jumpingRay.GetCollider();
+            if (IsInstanceValid(collider))
+            {
+                LedgeTileMap ledge = (LedgeTileMap)collider;
 
+                //If the player direction is equal to the ledge then we check if we can jump.
+                if (ledge.Direction == _facingDirection)
+                {
+                    //To check if the player can jump we move the raycast to the next tile and check if collides.
+                    Vector2 _tmpJumpingRayPosition = _jumpingRay.Position;
+                    _jumpingRay.Position = new Vector2(_tmpJumpingRayPosition.x + (_inputDirection.x * TILE_SIZE * 2.0f), _tmpJumpingRayPosition.y + (_inputDirection.y * TILE_SIZE * 2.0f));
+                    _jumpingRay.ForceRaycastUpdate();
+
+                    if (_jumpingRay.IsColliding())
+                    {
+                        //If collides, return the initial value to the raycast and set the player state to idle.
+                        _jumpingRay.Position = _tmpJumpingRayPosition;
+                        _jumpingRay.ForceRaycastUpdate();
+
+                        _playerState = PlayerState.kPlayerState_Idle;
+
+                        return;
+                    }
+
+                    //If we do not collide pick the animation from the direction we are facing and set the initial value of the raycast.
+                    switch (_facingDirection)
+                    {
+                        case Enums.FacingDirection.kFacingDirection_Down:
+                            GetNode<AnimationPlayer>("AnimationPlayer").Play("JumpDown");
+                            break;
+                        case Enums.FacingDirection.kFacingDirection_Left:
+                            GetNode<AnimationPlayer>("AnimationPlayer").Play("JumpLeft");
+                            break;
+                        case Enums.FacingDirection.kFacingDirection_Up:
+                            GetNode<AnimationPlayer>("AnimationPlayer").Play("JumpUp");
+                            break;
+                        case Enums.FacingDirection.kFacingDirection_Right:
+                            GetNode<AnimationPlayer>("AnimationPlayer").Play("JumpRight");
+                            break;
+                    };
+
+                    _isJumping = true;
+                    _jumpingRay.Position = _tmpJumpingRayPosition;
+                    _jumpingRay.ForceRaycastUpdate();
+                }
+                else
+                {
+                    //If we do not face the same direction as the edge then make the player idle to stop moving.
+                    _playerState = PlayerState.kPlayerState_Idle;
+
+                    return;
+                }
+            }
+        }
+
+        //On the next frames the player is going to move with the percent.
+        _percentMovedToNextTile += JumpSpeed * delta;
+
+        if (_percentMovedToNextTile >= 2.0f)
+        {
+            //When we moved 2 tiles we finished the movement.
+            Position = _initialPosition + (_inputDirection * TILE_SIZE * 2);
+            _percentMovedToNextTile = 0.0f;
+            _playerState = PlayerState.kPlayerState_Idle;
+            _isJumping = false;
+
+            //Create the animation jumping dust animation instance and add it to the scene.
+            AnimatedSprite anim_sprite = _landingDustEffect.Instance() as AnimatedSprite;
+            anim_sprite.Position = Position;
+            GetTree().CurrentScene.AddChild(anim_sprite);
+        }
+        else
+        {
+            //Between 0 and 2 percent the player will move.
+            Position = _initialPosition + (TILE_SIZE * _inputDirection * _percentMovedToNextTile);
+        }
+    }
+
+    public void HandleColliding(float delta)
+    {
+        //Update the percentage.
+        _percentMovedToNextTile += WalkSpeed * delta;
+
+        //Move and reset the values when the percentage reachs its maximum.
+        if (_percentMovedToNextTile >= 1.0f)
+        {
+            Position = _initialPosition + (TILE_SIZE * _inputDirection);
+            _percentMovedToNextTile = 0.0f;
+            _playerState = PlayerState.kPlayerState_Idle;
+        }
+        //If the percentage is not at its maximum, interpolate the position with the percentage.
+        else
+        {
+            // When getting close to the tile, send signal.
+            if (_percentMovedToNextTile <= 0.8f)
+            {
+                if (!_isMoving)
+                {
+                    EmitSignal(nameof(OnPlayerTileMoving));
+                }
+                _isMoving = true;
+            }
+            else
+            {
+                if (_isMoving)
+                {
+                    EmitSignal(nameof(OnPlayerTileMoved));
+                }
+                _isMoving = false;
+            }
+
+            Position = _initialPosition + (TILE_SIZE * _inputDirection * _percentMovedToNextTile);
+        }
+    }
+
+    private void Move(float delta)
+    {
         //Check if the player is about to enter a door.
         if (_doorRay.IsColliding())
         {
-            if (_percentMovedToNextTile == 0.0f)
-            {
-                EmitSignal(nameof(OnPlayerEnteringDoor));
-            }
-            if (_percentMovedToNextTile >= 1.0f)
-            {
-                Position = _initialPosition + (_inputDirection * TILE_SIZE);
-                _percentMovedToNextTile = 0.0f;
-                _playerState = PlayerState.kPlayerState_Idle;
-                _stopInput = true;
-
-                GetNode<AnimationPlayer>("AnimationPlayer").Play("Disappear");
-                GetNode<Camera2D>("Camera2D").ClearCurrent();
-            }
-            else
-            {
-                Position = _initialPosition + (TILE_SIZE * _inputDirection * _percentMovedToNextTile);
-            }
-
-            _percentMovedToNextTile += WalkSpeed * delta;
+            HandleEntertingDoor(delta);
         }
         //Check if the player is about to jump.
-        else if ((_jumpingRay.IsColliding()) || _isJumping )
+        else if ((_jumpingRay.IsColliding()) || _isJumping)
         {
-            if (_percentMovedToNextTile == 0.0f) 
-            {
-                TileMap collider = (TileMap)_jumpingRay.GetCollider();
-                if (IsInstanceValid(collider))
-                {
-                    LedgeTileMap ledge = collider as LedgeTileMap;
-                    if (ledge.Direction == _facingDirection) 
-                    {
-                        Vector2 _tmpJumpingRayPosition = _jumpingRay.Position;
-                        _jumpingRay.Position = new Vector2(_tmpJumpingRayPosition.x + (_inputDirection.x * TILE_SIZE * 2.0f), _tmpJumpingRayPosition.y + (_inputDirection.y * TILE_SIZE *2.0f));
-                        _jumpingRay.ForceRaycastUpdate();
-                        if (_jumpingRay.IsColliding()) {
-                            _jumpingRay.Position = _tmpJumpingRayPosition;
-                            _playerState = PlayerState.kPlayerState_Idle;
-                            _jumpingRay.ForceRaycastUpdate();
-                            return;
-                        }
-                        _isJumping = true;
-                        _jumpingRay.Position = _tmpJumpingRayPosition;
-                        _jumpingRay.ForceRaycastUpdate();
-                    } else {
-                        _playerState = PlayerState.kPlayerState_Idle;
-                        return;
-                    }
-                }
-            }
-            _percentMovedToNextTile += JumpSpeed * delta;
-
-            if(_percentMovedToNextTile >= 2.0f)
-            {
-                Position = _initialPosition + (_inputDirection * TILE_SIZE * 2);
-                _percentMovedToNextTile = 0.0f;
-                _playerState = PlayerState.kPlayerState_Idle;
-                _isJumping = false;
-                _shadowSprite.Visible = false;
-
-                //Create the animation jumping dust animation instance and add it to the scene.
-                AnimatedSprite anim_sprite = _landingDustEffect.Instance() as AnimatedSprite;
-                anim_sprite.Position = Position;
-                GetTree().CurrentScene.AddChild(anim_sprite);
-            }
-            else
-            {
-                _shadowSprite.Visible = true;
-                _isJumping = true;
-                float input = _inputDirection.y * TILE_SIZE * _percentMovedToNextTile;
-                Position = new Vector2(Position.x, _initialPosition.y + (-0.96f - 0.53f * input + 0.05f * (input * input)));
-            }
+            HandleJumping(delta);
         }
         //If the player is not colliding.
         else if (!_blockingRay.IsColliding())
         {
-            //Update the percentage.
-            _percentMovedToNextTile += WalkSpeed * delta;
-
-            //Move and reset the values when the percentage reachs its maximum.
-            if (_percentMovedToNextTile >= 1.0f)
-            {
-                Position = _initialPosition + (TILE_SIZE * _inputDirection);
-                _percentMovedToNextTile = 0.0f;
-                _playerState = PlayerState.kPlayerState_Idle;
-            }
-            //If the percentage is not at its maximum, interpolate the position with the percentage.
-            else
-            {
-                // When getting close to the tile, send signal.
-                if (_percentMovedToNextTile <= 0.8f)
-                {
-                    if (!_isMoving) {
-                        EmitSignal(nameof(OnPlayerTileMoving));
-                    }
-                    _isMoving = true;
-                } else {
-                    if (_isMoving) {
-                        EmitSignal(nameof(OnPlayerTileMoved));
-                    }
-                    _isMoving = false;
-                }
-
-                Position = _initialPosition + (TILE_SIZE * _inputDirection * _percentMovedToNextTile);
-            }
+            HandleColliding(delta);
         }
         else
         {
@@ -239,44 +327,13 @@ public class Player : KinematicBody2D
         }
     }
 
-    public bool NeedToTurn()
-    {
-        Enums.FacingDirection new_facing_direction = Enums.FacingDirection.kFacingDirection_None;
-
-        if(_inputDirection.x < 0)
-        {
-            new_facing_direction = Enums.FacingDirection.kFacingDirection_Left;
-        }
-        else if (_inputDirection.x > 0)
-        {
-            new_facing_direction = Enums.FacingDirection.kFacingDirection_Right;
-        }
-        else if (_inputDirection.y < 0)
-        {
-            new_facing_direction = Enums.FacingDirection.kFacingDirection_Up;
-        }
-        else if (_inputDirection.y > 0)
-        {
-            new_facing_direction = Enums.FacingDirection.kFacingDirection_Down;
-        }
-
-        if(_facingDirection != new_facing_direction)
-        {
-            _facingDirection = new_facing_direction;
-            return true;
-        }
-
-        _facingDirection = new_facing_direction;
-        return false;
-    }
-
-    public void FinishedTurning()
+    private void FinishedTurning()
     {
         //When finished turning the player stays in idle.
         _playerState = PlayerState.kPlayerState_Idle;
     }
 
-    public void EnteredDoor()
+    private void EnteredDoor()
     {
         EmitSignal(nameof(OnPlayerEnteredDoor));
     }
@@ -339,10 +396,5 @@ public class Player : KinematicBody2D
             _playerState = PlayerState.kPlayerState_Idle;
             _animState.Travel("Idle");
         }
-    }
-
-    public bool IsJumping()
-    {
-        return _isJumping;
     }
 }
