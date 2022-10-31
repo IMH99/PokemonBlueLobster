@@ -51,6 +51,8 @@ public class Player : KinematicBody2D
     private PackedScene                         _landingDustEffect = ResourceLoader.Load<PackedScene>("res://EnvAnimatedTextures/LandingDustEffect.tscn");
     private bool                                _isColliding = false;
 
+    private Godot.Collections.Array<Pokemon>    _pokemonParty;
+
 
     //Member Functions.
     public bool IsMoving()
@@ -92,6 +94,11 @@ public class Player : KinematicBody2D
 
         _facingDirection = new_facing_direction;
         return false;
+    }
+
+    public Godot.Collections.Array<Pokemon> GetPokemonParty()
+    {
+        return _pokemonParty;
     }
 
     public void SetSpawn(Vector2 spawn_location, Vector2 spawn_direction)
@@ -371,6 +378,14 @@ public class Player : KinematicBody2D
         //NOTE: this has to be reorganized, maybe only having a ref on the utils class and instancing that
         //reference every time we change scenes.
         Utils.Instance().SetPlayerNode(this);
+
+        _pokemonParty = new Godot.Collections.Array<Pokemon>();
+        _pokemonParty.Add(new Pokemon(1));
+        _pokemonParty.Add(new Pokemon(4));
+        _pokemonParty.Add(new Pokemon(7));
+        _pokemonParty.Add(new Pokemon(12));
+        _pokemonParty.Add(new Pokemon(17));
+        _pokemonParty.Add(new Pokemon(25));
     }
 
     //Called Every Frame.

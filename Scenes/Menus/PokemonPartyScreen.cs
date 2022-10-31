@@ -30,6 +30,21 @@ public class PokemonPartyScreen : Node2D
         _optionsDictionary.Add(Options.kOptions_CancelButton, GetNode<Sprite>("CancelButtonSprite"));
 
         SetActiveOption();
+
+        Godot.Collections.Array<Sprite> party_sprites = new Godot.Collections.Array<Sprite>();
+        party_sprites.Add(GetNode<Node2D>("FirstPokemonSlot").GetNode<Sprite>("PokemonPartyImage"));
+        party_sprites.Add(GetNode<Node2D>("SecondPokemonSlot").GetNode<Sprite>("PokemonPartyImage"));
+        party_sprites.Add(GetNode<Node2D>("ThirdPokemonSlot").GetNode<Sprite>("PokemonPartyImage"));
+        party_sprites.Add(GetNode<Node2D>("FourthPokemonSlot").GetNode<Sprite>("PokemonPartyImage"));
+        party_sprites.Add(GetNode<Node2D>("FifthPokemonSlot").GetNode<Sprite>("PokemonPartyImage"));
+        party_sprites.Add(GetNode<Node2D>("SixthPokemonSlot").GetNode<Sprite>("PokemonPartyImage"));
+
+        Godot.Collections.Array<Pokemon> player_party = Utils.Instance().GetPlayerNode().GetPokemonParty();
+
+        for (int i = 0; i < player_party.Count; ++i)
+        {
+            party_sprites[i].Texture = player_party[i].GetPartySprite().Texture;
+        }
     }
 
     public void UnsetActiveOption()
