@@ -62,6 +62,13 @@ public class Enums : Node
         kPokemonAttackCategory_Status
     }
 
+    public enum PokemonGenders
+    {
+        kPokemonGenders_None,
+        kPokemonGenders_Male,
+        kPokemonGenders_Female
+    }
+
     public enum FacingDirection
     {
         kFacingDirection_None = -1,

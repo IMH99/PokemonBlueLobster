@@ -21,29 +21,38 @@ public class PokemonPartyScreen : Node2D
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
-        _optionsDictionary.Add(Options.kOptions_FirstSlot, GetNode<Node2D>("FirstPokemonSlot").GetNode<Sprite>("Background"));
-        _optionsDictionary.Add(Options.kOptions_SecondSlot, GetNode<Node2D>("SecondPokemonSlot").GetNode<Sprite>("Background"));
-        _optionsDictionary.Add(Options.kOptions_ThirdSlot, GetNode<Node2D>("ThirdPokemonSlot").GetNode<Sprite>("Background"));
-        _optionsDictionary.Add(Options.kOptions_FouthSlot, GetNode<Node2D>("FourthPokemonSlot").GetNode<Sprite>("Background"));
-        _optionsDictionary.Add(Options.kOptions_FifthSlot, GetNode<Node2D>("FifthPokemonSlot").GetNode<Sprite>("Background"));
-        _optionsDictionary.Add(Options.kOptions_SixthSlot, GetNode<Node2D>("SixthPokemonSlot").GetNode<Sprite>("Background"));
-        _optionsDictionary.Add(Options.kOptions_CancelButton, GetNode<Sprite>("CancelButtonSprite"));
+        //Easy access to the nodes.
+        Godot.Collections.Array<Node2D> pokemonPartyNodes = new Godot.Collections.Array<Node2D>();
+        pokemonPartyNodes.Add(GetNode<Node2D>("FirstPokemonSlot"));
+        pokemonPartyNodes.Add(GetNode<Node2D>("SecondPokemonSlot"));
+        pokemonPartyNodes.Add(GetNode<Node2D>("ThirdPokemonSlot"));
+        pokemonPartyNodes.Add(GetNode<Node2D>("FourthPokemonSlot"));
+        pokemonPartyNodes.Add(GetNode<Node2D>("FifthPokemonSlot"));
+        pokemonPartyNodes.Add(GetNode<Node2D>("SixthPokemonSlot"));
 
+        //Get the backgrounds to add them to the dictionary. 
+        for (int i = 0; i < pokemonPartyNodes.Count; ++i)
+        {
+            _optionsDictionary.Add((Options)i, pokemonPartyNodes[i].GetNode<Sprite>("Background"));
+        }
+
+        //Also the cancel button and set the active option.
+        _optionsDictionary.Add(Options.kOptions_CancelButton, GetNode<Sprite>("CancelButtonSprite"));
         SetActiveOption();
 
-        Godot.Collections.Array<Sprite> party_sprites = new Godot.Collections.Array<Sprite>();
-        party_sprites.Add(GetNode<Node2D>("FirstPokemonSlot").GetNode<Sprite>("PokemonPartyImage"));
-        party_sprites.Add(GetNode<Node2D>("SecondPokemonSlot").GetNode<Sprite>("PokemonPartyImage"));
-        party_sprites.Add(GetNode<Node2D>("ThirdPokemonSlot").GetNode<Sprite>("PokemonPartyImage"));
-        party_sprites.Add(GetNode<Node2D>("FourthPokemonSlot").GetNode<Sprite>("PokemonPartyImage"));
-        party_sprites.Add(GetNode<Node2D>("FifthPokemonSlot").GetNode<Sprite>("PokemonPartyImage"));
-        party_sprites.Add(GetNode<Node2D>("SixthPokemonSlot").GetNode<Sprite>("PokemonPartyImage"));
-
+        //Set the menu information based on the player party
+        //NOTE: at the moment the pokemon names are not displayed in the party screen, as we need a method to retrieve the name of the pokemon from JSON or DB.
         Godot.Collections.Array<Pokemon> player_party = Utils.Instance().GetPlayerNode().GetPokemonParty();
-
         for (int i = 0; i < player_party.Count; ++i)
         {
-            party_sprites[i].Texture = player_party[i].GetPartySprite().Texture;
+            Pokemon.PokemonInfo info = player_party[i].GetPokemonInfo();
+
+            pokemonPartyNodes[i].GetNode<Sprite>("PokemonPartyImage").Texture = player_party[i].GetPartySprite().Texture;
+            pokemonPartyNodes[i].GetNode<Label>("PokemonName").Text = info.Name;
+            pokemonPartyNodes[i].GetNode<Label>("PokemonLevel").Text = info.Level.ToString();
+            
+            pokemonPartyNodes[i].GetNode<Sprite>("PokemonGender").Texture = (Texture)GD.Load("res://Assets/Tiles/Menus/Pokemon/gender_icons.png");
+            pokemonPartyNodes[i].GetNode<Sprite>("PokemonGender").Frame = (int)info.Gender - 1;
         }
     }
 
