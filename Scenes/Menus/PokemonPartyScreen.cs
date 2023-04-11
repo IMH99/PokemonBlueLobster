@@ -15,12 +15,18 @@ public class PokemonPartyScreen : Node2D
         kOptions_CancelButton
     }
 
+    private PokemonOptions                                  _pokemonOptions;
     private Options                                         _selectedOption = Options.kOptions_FirstSlot;
     private Godot.Collections.Dictionary<Options, Sprite>   _optionsDictionary = new Godot.Collections.Dictionary<Options, Sprite>();
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
+        //Initialize the pokemon options menu.
+        _pokemonOptions = GetNode<PokemonOptions>("PokemonOptions");
+        _pokemonOptions._menuControl.SetProcessInput(false);
+
+
         //Easy access to the nodes.
         Godot.Collections.Array<Node2D> pokemonPartyNodes = new Godot.Collections.Array<Node2D>();
         pokemonPartyNodes.Add(GetNode<Node2D>("FirstPokemonSlot"));
@@ -68,63 +74,68 @@ public class PokemonPartyScreen : Node2D
 
     public override void _Input(InputEvent @event)
     {
-        if(@event.IsActionPressed("ui_down"))
+        //We have to do this because setting the blocking signal to false makes the input 
+        //be received by this function.
+        if(!_pokemonOptions._skipFrame)
         {
-            UnsetActiveOption();
-            _selectedOption = (Options)(((int)_selectedOption + 1) % 7);
-            SetActiveOption();
-        }
-        else if(@event.IsActionPressed("ui_up"))
-        {
-            UnsetActiveOption();
-            if(_selectedOption == Options.kOptions_FirstSlot)
+            //While Pokemon Options is not proccessing input
+            if (_pokemonOptions._menuControl.IsBlockingSignals())
             {
-                _selectedOption = Options.kOptions_CancelButton;
-            }
-            else
-            {
-                _selectedOption -= 1;
-            }
-            SetActiveOption();
-        }
-        else if(@event.IsActionPressed("ui_left"))
-        {
-            UnsetActiveOption();
-            _selectedOption = Options.kOptions_FirstSlot;
-            SetActiveOption();
-        }
-        else if (@event.IsActionPressed("ui_right") && _selectedOption == Options.kOptions_FirstSlot)
-        {
-            UnsetActiveOption();
-            _selectedOption = Options.kOptions_SecondSlot;
-            SetActiveOption();
-        }
-        else if (@event.IsActionPressed("Select"))
-        {
-            switch(_selectedOption)
-            {
-                case Options.kOptions_FirstSlot:
-                    break;
-
-                case Options.kOptions_SecondSlot:
-                    break;
-
-                case Options.kOptions_ThirdSlot:
-                    break;
-
-                case Options.kOptions_FouthSlot:
-                    break;
-
-                case Options.kOptions_FifthSlot:
-                    break;
-
-                case Options.kOptions_SixthSlot:
-                    break;
-
-                case Options.kOptions_CancelButton:
+                if (@event.IsActionPressed("ui_down"))
+                {
+                    UnsetActiveOption();
+                    _selectedOption = (Options)(((int)_selectedOption + 1) % 7);
+                    SetActiveOption();
+                }
+                else if (@event.IsActionPressed("ui_up"))
+                {
+                    UnsetActiveOption();
+                    if (_selectedOption == Options.kOptions_FirstSlot)
+                    {
+                        _selectedOption = Options.kOptions_CancelButton;
+                    }
+                    else
+                    {
+                        _selectedOption -= 1;
+                    }
+                    SetActiveOption();
+                }
+                else if (@event.IsActionPressed("ui_left"))
+                {
+                    UnsetActiveOption();
+                    _selectedOption = Options.kOptions_FirstSlot;
+                    SetActiveOption();
+                }
+                else if (@event.IsActionPressed("ui_right") && _selectedOption == Options.kOptions_FirstSlot)
+                {
+                    UnsetActiveOption();
+                    _selectedOption = Options.kOptions_SecondSlot;
+                    SetActiveOption();
+                }
+                else if (@event.IsActionPressed("Select"))
+                {
+                    if (_selectedOption == Options.kOptions_FirstSlot || _selectedOption == Options.kOptions_SecondSlot ||
+                        _selectedOption == Options.kOptions_ThirdSlot || _selectedOption == Options.kOptions_FouthSlot ||
+                        _selectedOption == Options.kOptions_FifthSlot || _selectedOption == Options.kOptions_SixthSlot)
+                    {
+                        //Show Pokemon Options Menu.
+                        _pokemonOptions.ShowMenu();
+                    }
+                    else
+                    {
+                        //Exit Menu (the last option is to select exit button).
+                        Utils.Instance().GetSceneManager().TransitionExitPartyScene();
+                    }
+                }
+                else if (@event.IsActionPressed("ExitMenu"))
+                {
                     Utils.Instance().GetSceneManager().TransitionExitPartyScene();
-                    break;
+                }
             }
         }
-    }
+        else
+        {
+            _pokemonOptions._skipFrame = false;
+        }
+    }    
 }

@@ -42,6 +42,14 @@ public class Menu : CanvasLayer
         RemoveChild(GetNode<Node2D>("PokemonPartyScreen"));
     }
 
+    private void UpdateArrowPosition(int option)
+    {
+        //This position matches the x and y for the option arrow.
+        //The second 6 is the number of options we have in our enum.
+        //The 15 is an increment to how much the arrow moves up and down.
+        _selectArrow.RectPosition = new Vector2(8, 6 + (option % 6) * 15);
+    }
+
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
@@ -55,7 +63,8 @@ public class Menu : CanvasLayer
             //This position matches the x and y for the option arrow.
             //The second 6 is the number of options we have in our enum.
             //The 15 is an increment to how much the arrow moves up and down.
-            _selectArrow.RectPosition = new Vector2(8, 6 + ((int)_optionSelected % 6) * 15);
+            UpdateArrowPosition((int)_optionSelected);
+
         }
     }
 
@@ -87,7 +96,7 @@ public class Menu : CanvasLayer
                     if(_optionSelected != OptionSelected.kOptionSelected_Pokemon)
                     {
                         _optionSelected -= 1;
-                        _selectArrow.RectPosition = new Vector2(8, 6 + ((int)_optionSelected % 6) * 15);
+                        UpdateArrowPosition((int)_optionSelected);
                     }
                 }
                 else if (@event.IsActionPressed("ui_down"))
@@ -95,7 +104,7 @@ public class Menu : CanvasLayer
                     if (_optionSelected != OptionSelected.kOptionSelected_Exit)
                     {
                         _optionSelected += 1;
-                        _selectArrow.RectPosition = new Vector2(8, 6 + ((int)_optionSelected % 6) * 15);
+                        UpdateArrowPosition((int)_optionSelected);
                     }    
                 }
                 else if(@event.IsActionPressed("Select"))
@@ -110,7 +119,8 @@ public class Menu : CanvasLayer
             case ScreenLoaded.kScreenLoaded_Party:
                 if (@event.IsActionPressed("ExitMenu"))
                 {
-                    Utils.Instance().GetSceneManager().TransitionExitPartyScene();
+                    //We moved this functionality to PokemonParty script.
+                    //Utils.Instance().GetSceneManager().TransitionExitPartyScene();
                 }
                 break;
         }

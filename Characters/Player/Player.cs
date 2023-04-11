@@ -379,6 +379,7 @@ public class Player : KinematicBody2D
         //reference every time we change scenes.
         Utils.Instance().SetPlayerNode(this);
 
+        //Adding manually the Pokemon Party by Pokemon number (check constructors in Pokemon.cs to see the posibilities). 
         _pokemonParty = new Godot.Collections.Array<Pokemon>();
         _pokemonParty.Add(new Pokemon(1));
         _pokemonParty.Add(new Pokemon(4));

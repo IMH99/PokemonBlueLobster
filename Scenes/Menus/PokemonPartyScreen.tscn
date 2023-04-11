@@ -1,9 +1,10 @@
-[gd_scene load_steps=23 format=2]
+[gd_scene load_steps=24 format=2]
 
 [ext_resource path="res://Assets/Tiles/Menus/party_background.png" type="Texture" id=1]
 [ext_resource path="res://Assets/Tiles/Menus/main_pokemon_background.png" type="Texture" id=2]
 [ext_resource path="res://Assets/Tiles/Menus/Pokemon/gender_icons.png" type="Texture" id=3]
 [ext_resource path="res://Assets/Tiles/Menus/pkmnfl.ttf" type="DynamicFontData" id=4]
+[ext_resource path="res://Scenes/Menus/PokemonOptions.tscn" type="PackedScene" id=5]
 [ext_resource path="res://Assets/Tiles/Menus/Pokemon/healthbar.png" type="Texture" id=6]
 [ext_resource path="res://Assets/Tiles/Menus/standby_pokemon_background.png" type="Texture" id=8]
 [ext_resource path="res://Assets/Tiles/Menus/exit_background_button.png" type="Texture" id=13]
@@ -581,3 +582,5 @@ region_rect = Rect2( 24, 0, 24, 3 )
 position = Vector2( 211, 144 )
 texture = ExtResource( 13 )
 hframes = 2
+
+[node name="PokemonOptions" parent="." instance=ExtResource( 5 )]
