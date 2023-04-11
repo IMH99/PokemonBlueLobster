@@ -15,17 +15,25 @@ public class PokemonPartyScreen : Node2D
         kOptions_CancelButton
     }
 
+    private int                                             _numberOfPokemon;
+    private int                                             _numberOfSlots;
     private PokemonOptions                                  _pokemonOptions;
     private Options                                         _selectedOption = Options.kOptions_FirstSlot;
     private Godot.Collections.Dictionary<Options, Sprite>   _optionsDictionary = new Godot.Collections.Dictionary<Options, Sprite>();
 
-    // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
         //Initialize the pokemon options menu.
         _pokemonOptions = GetNode<PokemonOptions>("PokemonOptions");
         _pokemonOptions._menuControl.SetProcessInput(false);
 
+        //Set the menu information based on the player party
+        //NOTE: at the moment the pokemon names are not displayed in the party screen, as we need a method to retrieve the name of the pokemon from JSON or DB.
+        Godot.Collections.Array<Pokemon> player_party = Utils.Instance().GetPlayerNode().GetPokemonParty();
+        _numberOfPokemon = player_party.Count;
+
+        //Plus 1 because of the cancel button
+        _numberOfSlots = _numberOfPokemon + 1;
 
         //Easy access to the nodes.
         Godot.Collections.Array<Node2D> pokemonPartyNodes = new Godot.Collections.Array<Node2D>();
@@ -35,22 +43,10 @@ public class PokemonPartyScreen : Node2D
         pokemonPartyNodes.Add(GetNode<Node2D>("FourthPokemonSlot"));
         pokemonPartyNodes.Add(GetNode<Node2D>("FifthPokemonSlot"));
         pokemonPartyNodes.Add(GetNode<Node2D>("SixthPokemonSlot"));
-
-        //Get the backgrounds to add them to the dictionary. 
-        for (int i = 0; i < pokemonPartyNodes.Count; ++i)
-        {
-            _optionsDictionary.Add((Options)i, pokemonPartyNodes[i].GetNode<Sprite>("Background"));
-        }
-
-        //Also the cancel button and set the active option.
-        _optionsDictionary.Add(Options.kOptions_CancelButton, GetNode<Sprite>("CancelButtonSprite"));
-        SetActiveOption();
-
-        //Set the menu information based on the player party
-        //NOTE: at the moment the pokemon names are not displayed in the party screen, as we need a method to retrieve the name of the pokemon from JSON or DB.
-        Godot.Collections.Array<Pokemon> player_party = Utils.Instance().GetPlayerNode().GetPokemonParty();
+        
         for (int i = 0; i < player_party.Count; ++i)
         {
+            //Get the pokemon information and update it to the party screen.
             Pokemon.PokemonInfo info = player_party[i].GetPokemonInfo();
 
             pokemonPartyNodes[i].GetNode<Sprite>("PokemonPartyImage").Texture = player_party[i].GetPartySprite().Texture;
@@ -59,6 +55,19 @@ public class PokemonPartyScreen : Node2D
             
             pokemonPartyNodes[i].GetNode<Sprite>("PokemonGender").Texture = (Texture)GD.Load("res://Assets/Tiles/Menus/Pokemon/gender_icons.png");
             pokemonPartyNodes[i].GetNode<Sprite>("PokemonGender").Frame = (int)info.Gender - 1;
+
+            //Get the backgrounds to add them to the dictionary. 
+            _optionsDictionary.Add((Options)i, pokemonPartyNodes[i].GetNode<Sprite>("Background"));
+        }
+
+        //Also the cancel button and set the active option on the last position (thats why we use the number of pokemon variable.
+        _optionsDictionary.Add((Options)_numberOfPokemon, GetNode<Sprite>("CancelButtonSprite"));
+        SetActiveOption();
+
+        //Make invisible the nodes that are empty.
+        for (int i = player_party.Count; i < 6; ++i)
+        {
+            pokemonPartyNodes[i].Visible = false;
         }
     }
 
@@ -84,7 +93,7 @@ public class PokemonPartyScreen : Node2D
                 if (@event.IsActionPressed("ui_down"))
                 {
                     UnsetActiveOption();
-                    _selectedOption = (Options)(((int)_selectedOption + 1) % 7);
+                    _selectedOption = (Options)(((int)_selectedOption + 1) % _numberOfSlots);
                     SetActiveOption();
                 }
                 else if (@event.IsActionPressed("ui_up"))
@@ -92,7 +101,8 @@ public class PokemonPartyScreen : Node2D
                     UnsetActiveOption();
                     if (_selectedOption == Options.kOptions_FirstSlot)
                     {
-                        _selectedOption = Options.kOptions_CancelButton;
+                        //We set it to number of pokemon because is the last position of the dictionary.
+                        _selectedOption = (Options)_numberOfPokemon;
                     }
                     else
                     {

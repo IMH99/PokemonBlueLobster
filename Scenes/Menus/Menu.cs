@@ -9,11 +9,16 @@ public class Menu : CanvasLayer
     {
         kScreenLoaded_Nothing,
         kScreenLoaded_Menu,
-        kScreenLoaded_Party
+        kScreenLoaded_Pokedex,
+        kScreenLoaded_Party,
+        kScreenLoaded_Bag,
+        kScreenLoaded_User,
+        kScreenLoaded_Options
     }
 
     enum OptionSelected
     {
+        kOptionSelected_Pokedex,
         kOptionSelected_Pokemon,
         kOptionSelected_Bag,
         kOptionSelected_User,
@@ -25,7 +30,7 @@ public class Menu : CanvasLayer
     private TextureRect             _selectArrow;
     private Control                 _menuControl;
     private ScreenLoaded            _screenLoaded = ScreenLoaded.kScreenLoaded_Nothing;
-    private OptionSelected          _optionSelected = OptionSelected.kOptionSelected_Pokemon;
+    private OptionSelected          _optionSelected = OptionSelected.kOptionSelected_Pokedex;
     private PackedScene             _pokemonPartyScreen = ResourceLoader.Load<PackedScene>("res://Scenes/Menus/PokemonPartyScreen.tscn");
 
     public void LoadPartyScreen()
@@ -47,7 +52,7 @@ public class Menu : CanvasLayer
         //This position matches the x and y for the option arrow.
         //The second 6 is the number of options we have in our enum.
         //The 15 is an increment to how much the arrow moves up and down.
-        _selectArrow.RectPosition = new Vector2(8, 6 + (option % 6) * 15);
+        _selectArrow.RectPosition = new Vector2(8, 6 + (option % 8) * 15);
     }
 
     // Called when the node enters the scene tree for the first time.
@@ -93,7 +98,7 @@ public class Menu : CanvasLayer
                 }
                 else if(@event.IsActionPressed("ui_up"))
                 {
-                    if(_optionSelected != OptionSelected.kOptionSelected_Pokemon)
+                    if(_optionSelected != OptionSelected.kOptionSelected_Pokedex)
                     {
                         _optionSelected -= 1;
                         UpdateArrowPosition((int)_optionSelected);
@@ -116,12 +121,28 @@ public class Menu : CanvasLayer
                 }
                 break;
 
+            case ScreenLoaded.kScreenLoaded_Pokedex:
+
+                break;
+
             case ScreenLoaded.kScreenLoaded_Party:
                 if (@event.IsActionPressed("ExitMenu"))
                 {
                     //We moved this functionality to PokemonParty script.
                     //Utils.Instance().GetSceneManager().TransitionExitPartyScene();
                 }
+                break;
+
+            case ScreenLoaded.kScreenLoaded_Bag:
+
+                break;
+
+            case ScreenLoaded.kScreenLoaded_User:
+
+                break;
+
+            case ScreenLoaded.kScreenLoaded_Options:
+
                 break;
         }
     }

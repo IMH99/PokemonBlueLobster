@@ -116,11 +116,13 @@ public class Pokemon : Node
 
         _info.Nature = (Enums.PokemonNatures)rng.RandiRange(0, 24);
 
+        //We will have to retrieve this information from JSON / DB.
         _info.Weight = rng.RandfRange(1.0f, 20.0f);
         _info.Height = rng.RandfRange(0.5f, 2.0f);
 
         _info.Happiness = 0;
 
+        //We will have to retrieve this information from JSON / DB.
         _info.Gender = (Enums.PokemonGenders)rng.RandiRange(1, 2);
     }
 

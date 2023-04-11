@@ -384,9 +384,9 @@ public class Player : KinematicBody2D
         _pokemonParty.Add(new Pokemon(1));
         _pokemonParty.Add(new Pokemon(4));
         _pokemonParty.Add(new Pokemon(7));
-        _pokemonParty.Add(new Pokemon(12));
-        _pokemonParty.Add(new Pokemon(17));
-        _pokemonParty.Add(new Pokemon(25));
+        //_pokemonParty.Add(new Pokemon(12));
+        //_pokemonParty.Add(new Pokemon(17));
+        //_pokemonParty.Add(new Pokemon(25));
     }
 
     //Called Every Frame.
