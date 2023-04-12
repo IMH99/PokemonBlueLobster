@@ -1,8 +1,9 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://Scenes/Map/Town.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Scenes/SceneManager/SceneManager.cs" type="Script" id=2]
 [ext_resource path="res://Scenes/Menus/Menu.tscn" type="PackedScene" id=3]
+[ext_resource path="res://Database/Database.cs" type="Script" id=4]
 
 [sub_resource type="Animation" id=3]
 resource_name = "BlackToNormal"
@@ -64,6 +65,7 @@ tracks/0/keys = {
 }
 
 [node name="SceneManager" type="Node2D"]
+position = Vector2( 0, -1 )
 script = ExtResource( 2 )
 
 [node name="CurrentScene" type="Node2D" parent="."]
@@ -83,3 +85,6 @@ color = Color( 0, 0, 0, 0 )
 anims/BlackToNormal = SubResource( 3 )
 anims/FadeToBlack = SubResource( 1 )
 anims/RESET = SubResource( 2 )
+
+[node name="Database" type="Node" parent="."]
+script = ExtResource( 4 )

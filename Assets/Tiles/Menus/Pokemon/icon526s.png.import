@@ -2,16 +2,11 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/icon526s.png-9e346c6a91612185fd740f4ee18645a1.stex"
-metadata={
-"vram_texture": false
-}
+valid=false
 
 [deps]
 
 source_file="res://Assets/Tiles/Menus/Pokemon/icon526s.png"
-dest_files=[ "res://.import/icon526s.png-9e346c6a91612185fd740f4ee18645a1.stex" ]
-
 [params]
 
 compress/mode=0

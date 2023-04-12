@@ -8,6 +8,7 @@ public class Utils : Node
     private Node                    _sceneManagerNode;
     private Player                  _playerRef;
     private SceneManager            _sceneManagerRef; 
+    private Database                _database;
 
     //Member functions.
     public static Utils Instance()
@@ -38,5 +39,6 @@ public class Utils : Node
         _sceneManagerNode = GetTree().Root.GetChild(GetTree().Root.GetChildCount() - 1);
         _sceneManagerRef = (SceneManager)_sceneManagerNode;
         _playerRef = (Player)_sceneManagerNode.GetNode<Node2D>("CurrentScene").FindNode("Player");
+        _database = (Database)_sceneManagerNode.GetNode<Node2D>("CurrentScene").FindNode("Database");
     }
 }

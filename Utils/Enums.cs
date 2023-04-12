@@ -6,7 +6,7 @@ public class Enums : Node
     public enum PokemonTypes
     {
         kPokemonTypes_None,
-        kPokemonTypes_Plant,
+        kPokemonTypes_Grass,
         kPokemonTypes_Fire,
         kPokemonTypes_Water,
         kPokemonTypes_Normal,
@@ -20,7 +20,7 @@ public class Enums : Node
         kPokemonTypes_Ice,
         kPokemonTypes_Psychic,
         kPokemonTypes_Dark,
-        kPokemonTypes_Drake,
+        kPokemonTypes_Dragon,
         kPokemonTypes_Ghost,
         kPokemonTypes_Fairy,
         kPokemonTypes_Fighting
